@@ -10,10 +10,12 @@ import GetData
 
 TIME_STEP = 10 # rnn 时序步长数
 INPUT_SIZE = 1 # rnn 的输入维度
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
 H_SIZE = 64 # of rnn 隐藏单元个数
 EPOCHS = 8000 # 总共训练次数
 h_state = torch.zeros(1,H_SIZE) # 隐藏层状态
+
+print(DEVICE)
 
 class RNN(nn.Module):
     def __init__(self,input_size,hidden_size,output_size):
@@ -56,7 +58,7 @@ for step in range(EPOCHS):
     # y_np = np.cos(steps)
     # x_np,y_np,N = GetData.GetData("database/datau.txt",0)
     N = 300
-    N1 = int(N*0.3)
+    N1 = int(N*0.7)
     N2 = N - N1
     steps = x_data[:N1]
     x_np = y_data[:N1 - 1]

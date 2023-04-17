@@ -8,10 +8,13 @@ import matplotlib.animation
 import math, random
 import GetData
 
+# import os
+# os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 TIME_STEP = 10 # lstm 时序步长数
 INPUT_SIZE = 1 # lstm 的输入维度
-DEVICE =  torch.device("cuda" if torch.cuda.is_available() else "cpu")
-H_SIZE = 32 # of lstm 隐藏单元个数
+DEVICE =  torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+H_SIZE = 64 # of lstm 隐藏单元个数
 EPOCHS = 100000 # 总共训练次数
 h_state = torch.zeros(1,H_SIZE) # 隐藏层状态
 cell = torch.zeros(1,H_SIZE)
@@ -33,50 +36,42 @@ class MTM(nn.Module):
         self.hidden = []
         self.change = []
         for i in range(tree_height):
-            self.Left.append([nn.Linear(input_size + 2 * hidden_size, hidden_size).to(DEVICE),
-                             nn.Linear(input_size + 2 * hidden_size, hidden_size).to(DEVICE)])
-            self.Right.append([nn.Linear(input_size + 2 * hidden_size, hidden_size).to(DEVICE),
-                             nn.Linear(input_size + 2 * hidden_size, hidden_size).to(DEVICE)])
+            self.Left.append([nn.Linear(2 * hidden_size, hidden_size).to(DEVICE),
+                             nn.Linear(2 * hidden_size, hidden_size).to(DEVICE)])
+            self.Right.append([nn.Linear(2 * hidden_size, hidden_size).to(DEVICE),
+                             nn.Linear(2 * hidden_size, hidden_size).to(DEVICE)])
             self.Other.append([nn.Linear(2 * hidden_size, hidden_size).to(DEVICE),
                              nn.Linear(2 * hidden_size, hidden_size).to(DEVICE)])
 
-        self.output = nn.Linear(hidden_size * tree_height + input_size,output_size).to(DEVICE)
+        self.output = nn.Linear(hidden_size,output_size).to(DEVICE)
         self.sigmoid = nn.Sigmoid().to(DEVICE)
 
     def init_hidden(self):
         self.hidden = []
         for i in range((1<<self.tree_height)+1):
             self.hidden.append(torch.zeros(1,self.hidden_size).to(DEVICE))
-        self.change = [0 for i in range((1<<self.tree_height)+1)]
 
-    def update(self,now,L,R,id,height,input):
+    def update(self,now,L,R,id,height, input):
         if height == self.tree_height:
-            return self.hidden[id]
+            return id
         ls = now << 1
         rs = ls + 1
         M = (L + R) >> 1
-        if self.change[now] == 0:
-            self.hidden[ls] = self.sigmoid(self.Other[height][0](torch.cat((self.hidden[now], self.hidden[ls]), 1)))
-            self.hidden[rs] = self.sigmoid(self.Other[height][1](torch.cat((self.hidden[now], self.hidden[rs]), 1)))
-        combine_input = torch.cat((input,self.hidden[now]),1)
-        self.change[id] = 0
-        if id<=M:
-            self.hidden[ls] = self.sigmoid(self.Left[height][0](torch.cat((combine_input, self.hidden[ls]), 1)))
-            self.hidden[rs] = self.sigmoid(self.Left[height][1](torch.cat((combine_input, self.hidden[rs]), 1)))
-            OUT = torch.cat((self.hidden[id],self.update(ls, L, M, id, height + 1, input)),1)
-            self.change[rs] = 1
-        else:
-            self.hidden[ls] = self.sigmoid(self.Right[height][0](torch.cat((combine_input, self.hidden[ls]), 1)))
-            self.hidden[rs] = self.sigmoid(self.Right[height][1](torch.cat((combine_input, self.hidden[rs]), 1)))
-            OUT = torch.cat((self.hidden[id], self.update(rs, M + 1, R, id, height + 1, input)), 1)
-            self.change[ls] = 1
-        return OUT
 
-    def MTM_work(self,input,id):
+        if id<=M:
+            self.hidden[ls] = self.sigmoid(self.Left[height][0](torch.cat((self.hidden[id], self.hidden[ls]), 1)))
+            self.hidden[rs] = self.sigmoid(self.Left[height][1](torch.cat((self.hidden[id], self.hidden[rs]), 1)))
+            return self.update(ls, L, M, id, height + 1, input)
+        else:
+            self.hidden[ls] = self.sigmoid(self.Right[height][0](torch.cat((self.hidden[id], self.hidden[ls]), 1)))
+            self.hidden[rs] = self.sigmoid(self.Right[height][1](torch.cat((self.hidden[id], self.hidden[rs]), 1)))
+            return self.update(rs, M + 1, R, id, height + 1, input)
+
+    def MTM_work(self, input , id ):
         combine_input = torch.cat((input,self.hidden[1]),1)
         self.hidden[1] = self.Other[0][0](combine_input)
-        OUT = torch.cat((input,self.update(1,1,1<<(self.tree_height-1),id,1,input)),1)
-        out = self.sigmoid(self.output(OUT))
+        OUT = self.update(1, 1, 1 << (self.tree_height-1), id, 1)
+        out = self.sigmoid(self.output(self.hidden[OUT]))
         return out
 
     def forward(self, x,N):
@@ -101,12 +96,11 @@ mtm = MTM(1,H_SIZE,1,height).to(DEVICE)
 optimizer = torch.optim.Adam(mtm.parameters()) # Adam优化，几乎不用调参
 criterion = nn.MSELoss() # 因为最终的结果是一个数值，所以损失函数用均方误差
 x_data,y_data,N = GetData.GetData("database/datau.txt",id)
-y_data = (y_data+10)/25
 mtm.train()
 N = 300
-N1 = int(N * 0.3)
+N1 = int(N * 0.7)
 N2 = N - N1
-steps = x_data[:N1]
+steps = x_data[N1 + 1:N]
 trainx = y_data[:N1 - 1]
 trainy = y_data[1:N1]
 testx = y_data[N1:N - 1]
@@ -150,7 +144,7 @@ for step in range(EPOCHS):
         file.write("EPOCHS: {},Loss:{:4f}\n".format(step+1,loss))
         file.flush()
         file.close()
-        # plt.plot(steps, y_np.flatten(), 'r-')
+        # plt.plot(steps, testy.flatten(), 'r-')
         # plt.plot(steps, prediction.cpu().data.numpy().flatten(), 'b-')
         # plt.draw()
         # plt.pause(0.1)
