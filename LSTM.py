@@ -8,13 +8,15 @@ import matplotlib.animation
 import math, random
 import GetData
 
-TIME_STEP = 10 # lstm 时序步长数
-INPUT_SIZE = 1 # lstm 的输入维度
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-H_SIZE = 32 # of lstm 隐藏单元个数
-EPOCHS = 300 # 总共训练次数
+TIME_STEP = 10 # rnn 时序步长数
+INPUT_SIZE = 1 # rnn 的输入维度
+DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
+H_SIZE = 64 # of rnn 隐藏单元个数
+EPOCHS = 8000 # 总共训练次数
 h_state = torch.zeros(1,H_SIZE) # 隐藏层状态
-cell = torch.zeros(1,H_SIZE)
+id = 0
+
+print(DEVICE)
 
 class LSTM(nn.Module):
     def __init__(self,input_size,hidden_size,cell_size,output_size):
@@ -58,32 +60,49 @@ optimizer = torch.optim.Adam(lstm.parameters()) # Adam优化，几乎不用调�
 criterion = nn.MSELoss() # 因为最终的结果是一个数值，所以损失函数用均方误差
 
 lstm.train()
-plt.figure(2)
+x_data,y_data,N = GetData.GetData("database/datau.txt",id)
+rnn.train()
+N = 300
+N1 = int(N * 0.7)
+N2 = N - N1
+steps = x_data[N1 + 1:N]
+trainx = y_data[:N1 - 1]
+trainy = y_data[1:N1]
+testx = y_data[N1:N - 1]
+testy = y_data[N1 + 1:N]
+
+
+# 训练
+Tx = torch.from_numpy(trainx[np.newaxis, :, np.newaxis]) # shape (batch, time_step, input_size)
+Ty = torch.from_numpy(trainy[np.newaxis, :, np.newaxis])
+Tx = Tx.to(DEVICE)
+Ty = Ty.to(DEVICE)
+
+# 测试
+x = torch.from_numpy(testx[np.newaxis, :, np.newaxis])  # shape (batch, time_step, input_size)
+y = torch.from_numpy(testy[np.newaxis, :, np.newaxis])
+x = x.to(DEVICE)
+y = y.to(DEVICE)
+
 for step in range(EPOCHS):
     # x_np = np.sin(steps)
     # y_np = np.cos(steps)
-    x_np,y_np,N = GetData.GetData("database/datau.txt",0)
-    y_np = (y_np+10)/25
-    steps = x_np[:300]
-    x_np = y_np[:300]
-    y_np = y_np[1:301]
-    x = torch.from_numpy(x_np[np.newaxis, :, np.newaxis]) # shape (batch, time_step, input_size)
-    y = torch.from_numpy(y_np[np.newaxis, :, np.newaxis])
-    x=x.to(DEVICE)
-    h_state=h_state.to(DEVICE)
-    cell = cell.to(DEVICE)
-    prediction, h_state,cell = lstm(x, h_state,cell,300) # rnn output
+    h_state = h_state.to(DEVICE)
+    prediction, h_state = lstm(Tx, h_state, N1 - 1)  # rnn output
     # 这一步非常重要
-    h_state = h_state.data # 重置隐藏层的状态, 切断和前一次迭代的链接
-    cell = cell.data
-    loss = criterion(prediction.cpu(), y)
+    h_state = h_state.data  # 重置隐藏层的状态, 切断和前一次迭代的链接
+    loss = criterion(prediction, Ty)
     # 这三行写在一起就可以
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
-    if (step+1)%20==0: #每训练20个批次可视化一下效果，并打印一下loss
-        print("EPOCHS: {},Loss:{:4f}".format(step,loss))
-        plt.plot(steps, y_np.flatten(), 'r-')
-        plt.plot(steps, prediction.cpu().data.numpy().flatten(), 'b-')
-        plt.draw()
-        plt.pause(0.1)
+    if (step + 1) % 200 == 0:  # 每训练20个批次可视化一下效果，并打印一下loss
+        h_state = h_state.to(DEVICE)
+        prediction, h_state = lstm(x, h_state, N2 - 1)  # rnn output
+        # 这一步非常重要
+        h_state = h_state.data  # 重置隐藏层的状态, 切断和前一次迭代的链接
+        loss = criterion(prediction, y)
+        # 这三行写在一起就可以
+        optimizer.zero_grad()
+        loss.backward()
+        print(str(step + 1) + ":" + str(loss))
