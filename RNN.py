@@ -8,6 +8,7 @@ import matplotlib.animation
 import math, random
 import GetData
 
+torch.set_printoptions(precision=8)
 TIME_STEP = 10 # rnn 时序步长数
 INPUT_SIZE = 1 # rnn 的输入维度
 DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")

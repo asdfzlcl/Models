@@ -11,6 +11,7 @@ import GetData
 # import os
 # os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
+torch.set_printoptions(precision=8)
 TIME_STEP = 10 # lstm 时序步长数
 INPUT_SIZE = 1 # lstm 的输入维度
 DEVICE =  torch.device("cuda:1" if torch.cuda.is_available() else "cpu")

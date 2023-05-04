@@ -8,6 +8,7 @@ import matplotlib.animation
 import math, random
 import GetData
 
+torch.set_printoptions(precision=8)
 TIME_STEP = 10 # rnn 时序步长数
 INPUT_SIZE = 1 # rnn 的输入维度
 DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
@@ -15,6 +16,8 @@ H_SIZE = 64 # of rnn 隐藏单元个数
 EPOCHS = 8000 # 总共训练次数
 h_state = torch.zeros(1,H_SIZE) # 隐藏层状态
 id = 0
+cell = torch.zeros(1,H_SIZE)
+
 
 print(DEVICE)
 
@@ -37,10 +40,10 @@ class LSTM(nn.Module):
         i_gate = self.sigmoid(self.gate_i(combined))
         o_gate = self.sigmoid(self.gate_o(combined))
         z_state = self.tanh(self.gate_i(combined))
-        cell = torch.add(torch.mul(cell,f_gate),torch.mul(z_state,i_gate))
-        hidden = torch.mul(self.tanh(cell),o_gate)
+        cellout = torch.add(torch.mul(cell,f_gate),torch.mul(z_state,i_gate))
+        hidden = torch.mul(self.tanh(cellout),o_gate)
         output = self.sigmoid(self.output(hidden))
-        return output,hidden,cell
+        return output,hidden,cellout
 
     def forward(self, x, h_state,cell,N):
         outs = []
@@ -61,7 +64,7 @@ criterion = nn.MSELoss() # 因为最终的结果是一个数值，所以损失�
 
 lstm.train()
 x_data,y_data,N = GetData.GetData("database/datau.txt",id)
-rnn.train()
+lstm.train()
 N = 300
 N1 = int(N * 0.7)
 N2 = N - N1
@@ -88,9 +91,11 @@ for step in range(EPOCHS):
     # x_np = np.sin(steps)
     # y_np = np.cos(steps)
     h_state = h_state.to(DEVICE)
-    prediction, h_state = lstm(Tx, h_state, N1 - 1)  # rnn output
+    cell = cell.to(DEVICE)
+    prediction, h_state,cell = lstm(Tx, h_state,cell, N1 - 1)  # rnn output
     # 这一步非常重要
     h_state = h_state.data  # 重置隐藏层的状态, 切断和前一次迭代的链接
+    cell = torch.zeros(1,H_SIZE)
     loss = criterion(prediction, Ty)
     # 这三行写在一起就可以
     optimizer.zero_grad()
@@ -98,9 +103,11 @@ for step in range(EPOCHS):
     optimizer.step()
     if (step + 1) % 200 == 0:  # 每训练20个批次可视化一下效果，并打印一下loss
         h_state = h_state.to(DEVICE)
-        prediction, h_state = lstm(x, h_state, N2 - 1)  # rnn output
+        cell = cell.to(DEVICE)
+        prediction, h_state,cell = lstm(x, h_state,cell, N2 - 1)  # rnn output
         # 这一步非常重要
         h_state = h_state.data  # 重置隐藏层的状态, 切断和前一次迭代的链接
+        cell = torch.zeros(1, H_SIZE)
         loss = criterion(prediction, y)
         # 这三行写在一起就可以
         optimizer.zero_grad()
