@@ -1,42 +1,22 @@
-import cdsapi
+import numpy as np
+import csv
+import pandas as pd
 
-c = cdsapi.Client()
+filename = "data/30E_60N_圣彼得堡/"
 
-c.retrieve(
-    'reanalysis-era5-single-levels',
-    {
-        'product_type': 'reanalysis',
-        'variable': [
-            '100m_u_component_of_wind', '100m_v_component_of_wind',
-        ],
-        'year': '2022',
-        'month': [
-            '01', '02', '03',
-            '04', '05', '06',
-            '07', '08', '09',
-            '10', '11', '12',
-        ],
-        'day': [
-            '01', '02', '03',
-            '04', '05', '06',
-            '07', '08', '09',
-            '10', '11', '12',
-            '13', '14', '15',
-            '16', '17', '18',
-            '19', '20', '21',
-            '22', '23', '24',
-            '25', '26', '27',
-            '28', '29', '30',
-            '31',
-        ],
-        'time': [
-            '00:00', '04:00', '08:00',
-            '12:00', '16:00', '20:00',
-        ],
-        'area': [
-            52, 0, 51,
-            1,
-        ],
-        'format': 'grib',
-    },
-    'download.grib')
+fileList = ["2013.csv","2014.csv","2015.csv","2016.csv","2017.csv","2018.csv","2019.csv","2020.csv","2021.csv"]
+
+data = []
+
+for name in fileList:
+    fileData = pd.read_csv(filename+name, sep=',',header='infer',usecols=[4,5])
+    data=data + (fileData.values[:,:].tolist())
+    print(fileData.values.shape)
+
+# print(data)
+print(np.array(data).shape)
+print(113880/365/6)
+
+with open('shengbidebao.txt', 'w') as file:
+    for row in data:
+        file.write('\t'.join(map(str, row)) + '\n')

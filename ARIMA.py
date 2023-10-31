@@ -11,7 +11,7 @@ import GetData
 import Tools
 
 def work(id,f):
-    x_np, y_np, N = GetData.GetData("database/datau.txt", id)
+    x_np, y_np, N = GetData.GetData("database/beijing.txt", id)
     y_np = (y_np + 10) / 25
     N = 300
     N1 = int(N * 0.7)
