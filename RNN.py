@@ -3,60 +3,57 @@ import torch.nn as nn
 from torch.nn import functional as F
 from torch import optim
 import numpy as np
+from TorchModels import RNN
 from matplotlib import pyplot as plt
 import matplotlib.animation
 import math, random
 import GetData
+import os
+
+MODEL_PATH = "model/rnn-kalahai"
+DATA_PATH = "database/kalahai.txt"
+DEVICE_ID = "cuda:1"
 
 torch.set_printoptions(precision=8)
 TIME_STEP = 10 # rnn 时序步长数
-INPUT_SIZE = 1 # rnn 的输入维度
-DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
-H_SIZE = 64 # of rnn 隐藏单元个数
+INPUT_SIZE = 52*2 # rnn 的输入维度
+OUTPUT_SIZE = 52*2
+DEVICE = torch.device(DEVICE_ID if torch.cuda.is_available() else "cpu")
+H_SIZE = 128 # of rnn 隐藏单元个数
 EPOCHS = 8000 # 总共训练次数
 h_state = torch.zeros(1,H_SIZE) # 隐藏层状态
-id = 0
+cell = torch.zeros(1,H_SIZE)
 
-print(DEVICE)
 
-class RNN(nn.Module):
-    def __init__(self,input_size,hidden_size,output_size):
-        super(RNN, self).__init__()
-        self.hidden_size = hidden_size
-        self.Hidden_layer = nn.Linear(input_size+hidden_size,hidden_size)
-        self.Out_layer1 = nn.Linear(input_size+hidden_size,output_size)
-        self.sigmoid = nn.Sigmoid()
+print("DEVICE is "+ DEVICE_ID)
 
-    def rnn_work(self,input,hidden):
-        combined = torch.cat((input,hidden),1)
-        hidden = self.Hidden_layer(combined)
-        output = self.sigmoid(self.Out_layer1(combined))
-        return output,hidden
+model = RNN.RNN(INPUT_SIZE,H_SIZE,OUTPUT_SIZE)
 
-    def forward(self, x, h_state,N):
-        outs = []
+if os.path.exists(MODEL_PATH):
+    model = torch.load(MODEL_PATH)
 
-        for time_step in range(N):
-            output,h_state = self.rnn_work(x[:,time_step,:],h_state)
-            outs.append(output[:])
+model.to(DEVICE)
 
-        return torch.stack(outs, dim=1), h_state
-         # 也可使用以下这样的返回值
-         # r_out = r_out.view(-1, 32)
-         # outs = self.out(r_out)
-         # return outs, h_state
-
-torch.set_printoptions(precision=8)
-rnn = RNN(1,H_SIZE,1).to(DEVICE)
-optimizer = torch.optim.Adam(rnn.parameters()) # Adam优化，几乎不用调参
+optimizer = torch.optim.Adam(model.parameters()) # Adam优化，几乎不用调参
 criterion = nn.MSELoss() # 因为最终的结果是一个数值，所以损失函数用均方误差
 
-x_data,y_data,N = GetData.GetData("database/datau.txt",id)
-rnn.train()
-N = 300
+model.train()
+y_data,Range = GetData.GetDataFromTxt(DATA_PATH)
+
+print(MODEL_PATH)
+print("Model's state_dict:")
+for param_tensor in model.state_dict():
+    print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+
+
+N = y_data.shape[0]
 N1 = int(N * 0.7)
 N2 = N - N1
-steps = x_data[N1 + 1:N]
+
+print("N="+str(N))
+print("N1="+str(N1))
+print("N2="+str(N2))
+
 trainx = y_data[:N1 - 1]
 trainy = y_data[1:N1]
 testx = y_data[N1:N - 1]
@@ -64,35 +61,40 @@ testy = y_data[N1 + 1:N]
 
 
 # 训练
-Tx = torch.from_numpy(trainx[np.newaxis, :, np.newaxis]) # shape (batch, time_step, input_size)
-Ty = torch.from_numpy(trainy[np.newaxis, :, np.newaxis])
-Tx = Tx.to(DEVICE)
-Ty = Ty.to(DEVICE)
+Tx = torch.from_numpy(trainx[np.newaxis, :]) # shape (batch, time_step, input_size)
+Ty = torch.from_numpy(trainy[np.newaxis, :])
+Tx = Tx.to(torch.float32).to(DEVICE)
+Ty = Ty.to(torch.float32).to(DEVICE)
 
 # 测试
-x = torch.from_numpy(testx[np.newaxis, :, np.newaxis])  # shape (batch, time_step, input_size)
-y = torch.from_numpy(testy[np.newaxis, :, np.newaxis])
-x = x.to(DEVICE)
-y = y.to(DEVICE)
+x = torch.from_numpy(testx[np.newaxis, :])  # shape (batch, time_step, input_size)
+y = torch.from_numpy(testy[np.newaxis, :])
+x = x.to(torch.float32).to(DEVICE)
+y = y.to(torch.float32).to(DEVICE)
+
 
 for step in range(EPOCHS):
-
-    h_state=h_state.to(DEVICE)
-    prediction, h_state = rnn(Tx, h_state,N1 - 1) # rnn output
+    # x_np = np.sin(steps)
+    # y_np = np.cos(steps)
+    h_state = h_state.to(DEVICE)
+    cell = cell.to(DEVICE)
+    prediction, h_state = model(Tx, h_state, N1 - 1)  # rnn output
     # 这一步非常重要
-    h_state = h_state.data # 重置隐藏层的状态, 切断和前一次迭代的链接
+    h_state = h_state.data  # 重置隐藏层的状态, 切断和前一次迭代的链接
     loss = criterion(prediction, Ty)
     # 这三行写在一起就可以
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
-    if (step+1) % 200 == 0: #每训练20个批次可视化一下效果，并打印一下loss
+    if (step + 1) % 2 == 0:  # 每训练20个批次可视化一下效果，并打印一下loss
         h_state = h_state.to(DEVICE)
-        prediction, h_state = rnn(x, h_state, N2 - 1)  # rnn output
+        cell = cell.to(DEVICE)
+        prediction, h_state = model(x, h_state, N2 - 1)  # rnn output
         # 这一步非常重要
         h_state = h_state.data  # 重置隐藏层的状态, 切断和前一次迭代的链接
         loss = criterion(prediction, y)
         # 这三行写在一起就可以
         optimizer.zero_grad()
         loss.backward()
-        print(str(step+1)+":"+str(loss))
+        torch.save(model, MODEL_PATH)
+        print(str(step + 1) + ":" + str(loss))

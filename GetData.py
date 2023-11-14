@@ -1,22 +1,37 @@
 import numpy as np
 
+def GetDataFromTxt(fileName):
+    dataList = []
 
-def GetData(filename,id):
-    data = open(filename, mode='r')
-    for i in range(id - 1):
-        positon = data.readline().split(",")
-        Data = data.readline().split(",")
-    positon = data.readline().split(",")
-    Data = data.readline().split(",")
-    x = Data[:-1:2]
-    y = Data[1::2]
-    for i in range(len(x)):
-        x[i] = float(x[i])
-        y[i] = float(y[i])
-    maxx = max(y)
-    minn = min(y)
-    y = np.array(y, dtype=np.float32)
-    y = (y-minn)/(maxx-minn)
-    return np.array(x,dtype=np.float32),y,len(x)
+    with open(fileName, 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            dataList.append(line.strip().split('\t'))
 
-# print(GetData("database/datau.txt", 15))
+    data = np.array(dataList,dtype=np.float32)
+    min_values = np.min(data, axis=0)
+    max_values = np.max(data, axis=0)
+    data = (data - min_values)/np.max(max_values - min_values)
+
+    # print(np.max(max_values - min_values))
+    # print(min_values,max_values)
+
+    # print(np.array(dataList).shape)
+    # print(1024920/365/6/9)
+    # print(1024920/52)
+    # print(dataList[0:52])
+    return data.reshape((-1,52*2)),max_values - min_values
+
+def GetDataRnn(fileName,batch_size):
+    dataList = GetDataFromTxt(fileName)
+    N = len(dataList)
+    datax = []
+    datay = []
+    for i in range(N-batch_size):
+        datax.append(dataList[i:i+batch_size-1])
+        datay.append(dataList[i+batch_size-1])
+    return datax,datay
+
+if __name__=='__main__':
+    data,range = GetDataFromTxt("database/beijing.txt")
+    print(data[0],range)
