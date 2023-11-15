@@ -98,4 +98,4 @@ for step in range(EPOCHS):
         optimizer.zero_grad()
         loss.backward()
         torch.save(model, MODEL_PATH)
-        print(str(step + 1) + ":" + str(loss))
+        print(MODEL_PATH + str(step + 1) + ":" + str(loss))

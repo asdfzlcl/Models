@@ -34,11 +34,15 @@ if os.path.exists(MODEL_PATH):
 
 model.to(DEVICE)
 
+print("MODEL 加载完毕")
+
 optimizer = torch.optim.Adam(model.parameters()) # Adam优化，几乎不用调参
 criterion = nn.MSELoss() # 因为最终的结果是一个数值，所以损失函数用均方误差
 
 model.train()
+print("数据开始加载")
 y_data,Range = GetData.GetDataFromTxt(DATA_PATH)
+print("数据加载完成")
 
 print("Model's state_dict:")
 for param_tensor in model.state_dict():
@@ -98,4 +102,4 @@ for step in range(EPOCHS):
         optimizer.zero_grad()
         loss.backward()
         torch.save(model, MODEL_PATH)
-        print(str(step + 1) + ":" + str(loss))
+        print(MODEL_PATH + str(step + 1) + ":" + str(loss))

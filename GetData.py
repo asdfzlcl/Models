@@ -2,19 +2,20 @@ import numpy as np
 
 def GetDataFromTxt(fileName):
     dataList = []
-
+    print("开始读取文件")
     with open(fileName, 'r') as file:
         lines = file.readlines()
         for line in lines:
             dataList.append(line.strip().split('\t'))
-
+    print("读取文件完成，开始归一化")
     data = np.array(dataList,dtype=np.float32)
     min_values = np.min(data, axis=0)
     max_values = np.max(data, axis=0)
-    data = (data - min_values)/np.max(max_values - min_values)
-
-    # print(np.max(max_values - min_values))
-    # print(min_values,max_values)
+    print(np.max(max_values - min_values))
+    print(min_values,max_values)
+    data = (data - min_values)
+    data = data/np.max(max_values - min_values)
+    print("归一化完成")
 
     # print(np.array(dataList).shape)
     # print(1024920/365/6/9)
