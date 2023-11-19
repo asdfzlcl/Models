@@ -12,7 +12,7 @@ import os
 
 MODEL_PATH = "model/ann-kalahai"
 DATA_PATH = "database/kalahai.txt"
-DEVICE_ID = "cuda:1"
+DEVICE_ID = "cuda:0"
 LOAD_FLAG = True
 
 torch.set_printoptions(precision=8)
@@ -70,16 +70,16 @@ y = y.to(torch.float32).to(DEVICE)
 print("训练开始")
 
 for step in range(EPOCHS):
-    loss = torch.tensor(0.0)
+    loss = torch.tensor(0.0).to(DEVICE)
     for i in range(TIME_STEP, N1):
         prediction = model(Tx[0, i - TIME_STEP:i])
-        loss += criterion(prediction, Tx[0, i].view(1,-1))
+        loss += criterion(prediction, Tx[0, i].view(1,-1)) / (N1 - TIME_STEP)
     # 这三行写在一起就可以
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
     if (step + 1) % 2 == 0:  # 每训练20个批次可视化一下效果，并打印一下loss
-        loss = torch.tensor(0.0)
+        loss = torch.tensor(0.0).to(DEVICE)
         for i in range(TIME_STEP, N2):
             prediction = model(x[0, i - TIME_STEP:i])
             loss += criterion(prediction, x[0, i].view(1,-1)) / (N2 - TIME_STEP)
