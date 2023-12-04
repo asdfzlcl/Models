@@ -31,6 +31,7 @@ def GetDataRnn(fileName,batch_size):
     for i in range(N-batch_size):
         datax.append(dataList[i:i+batch_size-1])
         datay.append(dataList[i+batch_size-1])
+
     return datax,datay
 
 if __name__=='__main__':
