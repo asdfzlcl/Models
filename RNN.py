@@ -79,6 +79,13 @@ for step in range(EPOCHS):
     h_state = h_state.to(DEVICE)
     cell = cell.to(DEVICE)
     prediction, h_state = model(Tx, h_state, N1 - 1)  # rnn output
+
+    try:
+        prediction, h_state = model(Tx, h_state, N1 - 1)  # rnn output
+    except Exception as e:
+        print("发生了一个异常:", e)
+        step = step - 1
+        continue# 退出程序
     # 这一步非常重要
     h_state = h_state.data  # 重置隐藏层的状态, 切断和前一次迭代的链接
     loss = criterion(prediction, Ty)

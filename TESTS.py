@@ -32,24 +32,11 @@ def cal_pred_of_proto(feature, proto, exists_flag, tau=1.0):
 
 
 # B = 1 CH = 2 D = 1 H =2 W =2 C = 2
-cal_pred_of_proto(
-    feature=torch.tensor(
-    [
-        [
-            [
-                [
-                    [0,0],
-                    [0,0]
-                ]
-            ],
-            [
-                [
-                    [0,0],
-                    [0,0]
-                ]
-            ]
-        ]
-    ],dtype=torch.float),
-    proto=torch.tensor([[0,0],[0,0]],dtype=torch.float),
-    exists_flag=torch.tensor([0,0],dtype=torch.float)
-)
+for i in range(10):
+    try:
+        x = 1/0
+    except Exception as e:
+        print("发生了一个异常:", e)
+        print(i)
+        i = i - 2
+        continue  # 退出程

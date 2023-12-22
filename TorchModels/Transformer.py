@@ -21,6 +21,7 @@ class Transformer(nn.Module):
         self.v1 = nn.Linear(input_size, hidden_size)
 
         self.fc2 = nn.Linear(hidden_size, hidden_size)
+
         self.layerNorm3 = nn.LayerNorm(hidden_size)
         self.layerNorm4 = nn.LayerNorm(hidden_size)
         self.q2 = nn.Linear(hidden_size, hidden_size)

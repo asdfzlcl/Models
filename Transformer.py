@@ -32,7 +32,7 @@ if os.path.exists(MODEL_PATH) and LOAD_FLAG:
 
 model.to(DEVICE)
 
-optimizer = torch.optim.Adam(model.parameters())  # Adam优化，几乎不用调参
+optimizer = torch.optim.SGD(model.parameters(),lr = 0.1, momentum=0.9)  # Adam优化，几乎不用调参
 criterion = nn.MSELoss()  # 因为最终的结果是一个数值，所以损失函数用均方误差
 
 model.train()

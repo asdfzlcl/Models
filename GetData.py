@@ -21,7 +21,10 @@ def GetDataFromTxt(fileName):
     # print(1024920/365/6/9)
     # print(1024920/52)
     # print(dataList[0:52])
-    return data.reshape((-1,52*2)),max_values - min_values
+    data = data.reshape((-1,52*2))
+    data = data[:,[i for i in range(13)]]
+
+    return data,max_values - min_values
 
 def GetDataRnn(fileName,batch_size):
     dataList = GetDataFromTxt(fileName)
@@ -37,3 +40,4 @@ def GetDataRnn(fileName,batch_size):
 if __name__=='__main__':
     data,range = GetDataFromTxt("database/beijing.txt")
     print(data[0],range)
+    print(data.shape)

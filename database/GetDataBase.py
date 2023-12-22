@@ -3,7 +3,7 @@ import numpy as np
 def GetDataFromTxt(fileName):
     dataList = []
 
-    with open('beijing.txt', 'r') as file:
+    with open(fileName, 'r') as file:
         lines = file.readlines()
         for line in lines:
             dataList.append(line.strip().split('\t'))
