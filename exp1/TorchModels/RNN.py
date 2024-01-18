@@ -6,13 +6,13 @@ class RNN(nn.Module):
         super(RNN, self).__init__()
         self.hidden_size = hidden_size
         self.Hidden_layer = nn.Linear(input_size+hidden_size,hidden_size)
-        self.Out_layer1 = nn.Linear(input_size+hidden_size,output_size)
+        self.Out_layer1 = nn.Linear(hidden_size,output_size)
         self.sigmoid = nn.Sigmoid()
 
     def rnn_work(self,input,hidden):
         combined = torch.cat((input,hidden),1)
-        hidden = self.Hidden_layer(combined)
-        output = self.sigmoid(self.Out_layer1(combined))
+        hidden = self.sigmoid(self.Hidden_layer(combined))
+        output = self.Out_layer1(hidden)
         return output,hidden
 
     def forward(self, x, h_state,N):

@@ -23,7 +23,7 @@ class GRU(nn.Module):
         h_state = torch.add(torch.mul((1-z_gate),hidden),torch.mul(h1_state,z_gate))
         output = self.output(h_state)
         output = self.sigmoid(output)
-        return output,hidden
+        return output,h_state
 
     def forward(self, x, h_state,N):
         outs = []
