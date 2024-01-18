@@ -1,12 +1,7 @@
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
-from torch import optim
 import numpy as np
 from TorchModels import LSTNet
-from matplotlib import pyplot as plt
-import matplotlib.animation
-import math, random
 import GetData
 import os
 

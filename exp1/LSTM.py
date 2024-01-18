@@ -1,12 +1,7 @@
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
-from torch import optim
 import numpy as np
 from TorchModels import LSTM
-from matplotlib import pyplot as plt
-import matplotlib.animation
-import math, random
 import GetData
 import os
 
@@ -27,7 +22,7 @@ cell = torch.zeros(1,H_SIZE)
 print(MODEL_PATH)
 print(DEVICE)
 
-model = LSTM.LSTM(INPUT_SIZE,H_SIZE,H_SIZE,OUTPUT_SIZE)
+model = LSTM.LSTM(INPUT_SIZE, H_SIZE, H_SIZE, OUTPUT_SIZE)
 
 if os.path.exists(MODEL_PATH):
     model = torch.load(MODEL_PATH)

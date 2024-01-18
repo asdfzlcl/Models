@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from TorchModels import Attention
-from TorchModels import RNN
+from exp1.TorchModels import Attention
+from exp1.TorchModels import RNN
 
 
 class HAFN(nn.Module):

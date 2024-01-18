@@ -1,11 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
-from torch import optim
 import numpy as np
-from matplotlib import pyplot as plt
-import matplotlib.animation
-import math, random
 import GetData
 
 # import os
@@ -96,7 +91,7 @@ class MTM(nn.Module):
 mtm = MTM(1,H_SIZE,1,height).to(DEVICE)
 optimizer = torch.optim.Adam(mtm.parameters()) # Adam优化，几乎不用调参
 criterion = nn.MSELoss() # 因为最终的结果是一个数值，所以损失函数用均方误差
-x_data,y_data,N = GetData.GetData("database/datau.txt",id)
+x_data,y_data,N = GetData.GetData("database/datau.txt", id)
 mtm.train()
 N = 300
 N1 = int(N * 0.7)

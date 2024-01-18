@@ -1,12 +1,4 @@
-import torch
-import torch.nn as nn
 import statsmodels.api as sm
-from torch.nn import functional as F
-from torch import optim
-import numpy as np
-from matplotlib import pyplot as plt
-import matplotlib.animation
-import math, random
 import GetData
 import Tools
 
@@ -22,7 +14,7 @@ def work(id,f):
     for i in range(N2):
         arima = sm.tsa.ARIMA(y_np[N1 + 1 + i - 16 : N1+1+i],order = (0,0,1)).fit()
         predict[i] = arima.forecast(1)[0]
-    mse = Tools.MSE(ans,predict)
+    mse = Tools.MSE(ans, predict)
     print(str(id)+":"+str(mse))
     f.write(str(mse)+"\n")
 

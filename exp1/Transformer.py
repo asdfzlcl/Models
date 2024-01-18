@@ -1,37 +1,33 @@
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
-from torch import optim
 import numpy as np
-from TorchModels import ANN
-from matplotlib import pyplot as plt
-import matplotlib.animation
-import math, random
+from TorchModels import Transformer
 import GetData
 import os
 
-MODEL_PATH = "model/ann-kalahai"
+MODEL_PATH = "model/transformer-kalahai"
 DATA_PATH = "database/kalahai.txt"
-DEVICE_ID = "cuda:0"
+DEVICE_ID = "cuda:2"
 LOAD_FLAG = True
 
 torch.set_printoptions(precision=8)
 TIME_STEP = 16
 INPUT_SIZE = TIME_STEP * 52 * 2
 OUTPUT_SIZE = 52 * 2
+HIDDEN_SIZE = 128
 DEVICE = torch.device(DEVICE_ID if torch.cuda.is_available() else "cpu")
 EPOCHS = 8000  # 总共训练次数
 
 print("DEVICE is " + DEVICE_ID)
 
-model = ANN.ANN(INPUT_SIZE, OUTPUT_SIZE)
+model = Transformer.Transformer(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
 
 if os.path.exists(MODEL_PATH) and LOAD_FLAG:
     model = torch.load(MODEL_PATH)
 
 model.to(DEVICE)
 
-optimizer = torch.optim.Adam(model.parameters())  # Adam优化，几乎不用调参
+optimizer = torch.optim.SGD(model.parameters(),lr = 0.1, momentum=0.9)  # Adam优化，几乎不用调参
 criterion = nn.MSELoss()  # 因为最终的结果是一个数值，所以损失函数用均方误差
 
 model.train()

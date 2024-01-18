@@ -1,5 +1,4 @@
 import torch
-from sklearn.svm import SVR
 from sklearn.multioutput import MultiOutputRegressor
 import GetData
 import Tools
@@ -48,5 +47,5 @@ clf.fit(trainx,trainy)
 print("训练完成","预测开始")
 predict = clf.predict(testx)
 print("预测完成")
-mse = Tools.MSE(testy,predict)
+mse = Tools.MSE(testy, predict)
 print(mse)

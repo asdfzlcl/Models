@@ -1,11 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
-from torch import optim
 import numpy as np
-from matplotlib import pyplot as plt
-import matplotlib.animation
-import math, random
 import GetData
 
 TIME_STEP = 10 # lstm 时序步长数
@@ -97,7 +92,7 @@ class MTM(nn.Module):
 mtm = MTM(1,H_SIZE,1,4).to(DEVICE)
 optimizer = torch.optim.Adam(mtm.parameters()) # Adam优化，几乎不用调参
 criterion = nn.MSELoss() # 因为最终的结果是一个数值，所以损失函数用均方误差
-x_data,y_data,N = GetData.GetData("database/datau.txt",0)
+x_data,y_data,N = GetData.GetData("database/datau.txt", 0)
 y_data = (y_data+10)/25
 mtm.train()
 # plt.figure(2)

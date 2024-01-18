@@ -20,7 +20,7 @@ parser.add_argument('--features', type=str, default='S', choices=['S', 'M'],
 parser.add_argument('--target', type=str, default='OT', help='target feature')
 parser.add_argument('--freq', type=str, default='4h',
                     help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')
-parser.add_argument('--checkpoints', type=str, default='exp/WIND_checkpoints/', help='location of model checkpoints')
+parser.add_argument('--checkpoints', type=str, default='exp2/WIND_checkpoints/', help='location of model checkpoints')
 parser.add_argument('--inverse', type=bool, default=False, help='denorm the output data')
 parser.add_argument('--embed', type=str, default='timeF',
                     help='time features encoding, options:[timeF, fixed, learned]')

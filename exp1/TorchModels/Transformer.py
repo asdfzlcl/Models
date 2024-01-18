@@ -1,6 +1,5 @@
-import torch
 import torch.nn as nn
-from TorchModels import Attention
+from exp1.TorchModels import Attention
 
 
 class Transformer(nn.Module):
