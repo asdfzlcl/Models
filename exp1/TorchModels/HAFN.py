@@ -26,9 +26,7 @@ class HAFN(nn.Module):
         self.softmax = nn.LogSoftmax(dim=1)
 
         # ANN prediction
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, output_size)
+        self.fc1 = nn.Linear(input_size, output_size)
 
         # RNN
         self.RNNList = nn.ModuleList([RNN.RNN(feature_size, RNN_hidden_size, RNN_hidden_size) for _ in range(RNN_size)])
@@ -70,10 +68,7 @@ class HAFN(nn.Module):
 
         # ANN
         input = input.view(1, -1)
-        out = self.fc1(input)
-        out = self.relu(out)
-        out = self.fc2(out)
-        ann_out = self.fc3(self.relu(out))
+        ann_out = self.fc1(input)
 
         # attention
         v = self.v1(history).unsqueeze(-1)

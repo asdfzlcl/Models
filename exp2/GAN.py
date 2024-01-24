@@ -3,12 +3,13 @@ import torch.nn as nn
 import numpy as np
 from TorchModels import GAN
 from database import getDataFromNC
-from TorchModels import Tools
+from TorchModels import SortTools
 from random import randint
 import os
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import style
+from TorchModels import Graph
 import os
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -17,17 +18,13 @@ dx = [0, 0, 1, 1, 1, -1, -1, -1]
 dy = [1, -1, 1, -1, 0, 1, -1, 0]
 
 
-def normalization(data):
-    _range = np.max(data) - np.min(data)
-    return (data - np.min(data)) / _range
-
 
 def TrainGAN():
     u, v = getDataFromNC.getData(r'database/jiduo.nc')
     u = u[:-67 * 6, :, :]
     v = v[:-67 * 6, :, :]
-    u = normalization(u)
-    v = normalization(v)
+    u = SortTools.normalization(u)
+    v = SortTools.normalization(v)
     time, N, M = u.shape
     print(time, N, M)
     MODEL_PATH = "model/"
@@ -87,8 +84,8 @@ def TrainD():
     u, v = getDataFromNC.getData(r'database/jiduo.nc')
     u = u[:-67 * 6, :, :]
     v = v[:-67 * 6, :, :]
-    u = normalization(u)
-    v = normalization(v)
+    u = SortTools.normalization(u)
+    v = SortTools.normalization(v)
     time, N, M = u.shape
     print(time, N, M)
     MODEL_PATH = "model/"
@@ -137,51 +134,25 @@ def GetGraph(t):
         discriminator = torch.load(MODEL_PATH + 'D')
     discriminator.to(DEVICE)
     u, v = getDataFromNC.getData(r'database/jiduo.nc')
-    u = u[:-67 * 6, :, :]
-    v = v[:-67 * 6, :, :]
-    u = normalization(u)
-    v = normalization(v)
+    u = u[:-67 * 6, :3, :3]
+    v = v[:-67 * 6, :3, :3]
+    u = SortTools.normalization(u)
+    v = SortTools.normalization(v)
     time, N, M = u.shape
     print(time, N, M)
-    # N, M = 5, 5
-    plt.figure(figsize=(10, 10), dpi=70)
-    q = Tools.Priority_Queue(lambda x, y: x[1] > y[1],
-                             lambda x: str(x[0][0]) + ',' + str(x[0][1]) + ',' + str(x[0][2]) + ',' + str(x[0][3]))
-    for x1 in range(N):
-        for y1 in range(M):
-            plt.scatter(x1, y1, s=50)
-            for dx in range(3):
-                for dy in range(3):
-                    x2 = x1 + dx
-                    y2 = y1 + dy
-                    if dx == 0 and dy == 0:
-                        continue
-                    if x2 >= N or y2 >= M:
-                        continue
-                    x = torch.tensor(
-                        (np.append(u[t:t + 50, x1, y1], v[t:t + 50, x1, y1])).reshape(1, 50, 2).astype(float),
-                        dtype=torch.float32).to(
-                        DEVICE)
-                    y = torch.tensor(
-                        (np.append(u[t:t + 50, x2, y2], v[t:t + 50, x2, y2])).reshape(1, 50, 2).astype(float),
-                        dtype=torch.float32).to(
-                        DEVICE)
-                    value = discriminator(x, y)
-                    q.push([[x1, y1, x2, y2], float(value)])
-
-    ans = []
-    for i in range(int(N * M * 4)):
-        top = q.getTop()
-        ans.append(top)
-        plt.plot([top[0][0], top[0][2]], [top[0][1], top[0][3]])
-        q.pop()
-    plt.show()
-    print(ans)
-
+    graph = Graph.Graph(discriminator,50,DEVICE,u,v,SortTools.Priority_Queue(lambda x, y: x[1] > y[1],
+                                          lambda x: '(' + str(x[0][0]) + ',' + str(x[0][1]) + ')-' '(' + str(
+                                              x[0][2]) + ',' + str(
+                                              x[0][3]) + ')'))
+    edges1 = graph.GetGraph(t,int(N*M*1.5),3,1)
+    edges0 = graph.GetGraph(t, int(N*M*1.5), 3, 0)
+    graph.ShowGraph(edges0)
+    graph.ShowGraph(edges1)
+    print(graph.GetEdgeList(edges0))
 
 if __name__ == '__main__':
     # TrainGAN()
-    for i in range(20):
-        # t = randint(0, 19348 - 51)
+    for i in range(3):
+        t = randint(0, 19348 - 51)
         print(4321 + i)
         GetGraph(4321 + i)
