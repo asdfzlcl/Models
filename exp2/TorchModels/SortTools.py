@@ -40,17 +40,25 @@ class Priority_Queue():
             ID = ls
 
     def push(self, x):
+        feature = self.feature(x)
+        if feature in self.dic and self.dic[feature] > 0:
+            self.updateValue(x)
+            return
         self.queue.append(x)
         self.last_index += 1
         self.update(self.last_index)
 
     def delID(self, ID):
+        if ID < 1:
+            return
         self.swap(self.last_index, ID)
         self.last_index = self.last_index - 1
         self.queue.pop()
         self.update(ID)
 
     def delFeature(self, x):
+        if not self.feature(x) in self.dic:
+            return
         self.delID(self.dic[self.feature(x)])
         self.dic[self.feature(x)] = -1
 
@@ -103,6 +111,12 @@ if __name__ == '__main__':
     print(queue.queue)
     print(queue.dic)
     queue.updateValue([1, 1])
+    print(queue.queue)
+    print(queue.dic)
+    queue.push([1, 44])
+    print(queue.queue)
+    print(queue.dic)
+    queue.push([9, 24])
     print(queue.queue)
     print(queue.dic)
     for i in range(3):

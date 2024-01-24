@@ -134,8 +134,8 @@ def GetGraph(t):
         discriminator = torch.load(MODEL_PATH + 'D')
     discriminator.to(DEVICE)
     u, v = getDataFromNC.getData(r'database/jiduo.nc')
-    u = u[:-67 * 6, :3, :3]
-    v = v[:-67 * 6, :3, :3]
+    u = u[:-67 * 6, :, :]
+    v = v[:-67 * 6, :, :]
     u = SortTools.normalization(u)
     v = SortTools.normalization(v)
     time, N, M = u.shape
