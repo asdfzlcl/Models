@@ -46,6 +46,7 @@ class Priority_Queue():
             return
         self.queue.append(x)
         self.last_index += 1
+        self.dic[feature] = self.last_index
         self.update(self.last_index)
 
     def delID(self, ID):

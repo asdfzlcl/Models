@@ -58,6 +58,7 @@ class Graph:
         for edge in edges:
             plt.plot([edge[0][0], edge[0][2]], [edge[0][1], edge[0][3]], c='k')
         plt.show()
+        print("edge nums:" + str(len(edges)))
 
     def GetEdgeList(self, edges):
         edgeList = [[0 for _ in range(self.M * self.N)] for _ in range(self.M * self.N)]

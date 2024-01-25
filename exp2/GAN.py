@@ -12,11 +12,12 @@ from matplotlib import style
 from TorchModels import Graph
 import os
 
+from exp2.TorchModels import AutoGraph
+
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 dx = [0, 0, 1, 1, 1, -1, -1, -1]
 dy = [1, -1, 1, -1, 0, 1, -1, 0]
-
 
 
 def TrainGAN():
@@ -140,19 +141,63 @@ def GetGraph(t):
     v = SortTools.normalization(v)
     time, N, M = u.shape
     print(time, N, M)
-    graph = Graph.Graph(discriminator,50,DEVICE,u,v,SortTools.Priority_Queue(lambda x, y: x[1] > y[1],
-                                          lambda x: '(' + str(x[0][0]) + ',' + str(x[0][1]) + ')-' '(' + str(
-                                              x[0][2]) + ',' + str(
-                                              x[0][3]) + ')'))
-    edges1 = graph.GetGraph(t,int(N*M*1.5),3,1)
-    edges0 = graph.GetGraph(t, int(N*M*1.5), 3, 0)
+    graph = Graph.Graph(discriminator, 50, DEVICE, u, v, SortTools.Priority_Queue(lambda x, y: x[1] > y[1],
+                                                                                  lambda x: '(' + str(
+                                                                                      x[0][0]) + ',' + str(
+                                                                                      x[0][1]) + ')-' '(' + str(
+                                                                                      x[0][2]) + ',' + str(
+                                                                                      x[0][3]) + ')'))
+    # edges1 = graph.GetGraph(t,int(N*M*1.5),3,1)
+    edges0 = graph.GetGraph(t, int(N * M * 1.5), 3, 0)
     graph.ShowGraph(edges0)
-    graph.ShowGraph(edges1)
-    print(graph.GetEdgeList(edges0))
+    # graph.ShowGraph(edges1)
+    # print(graph.GetEdgeList(edges0))
+
+
+def GetAutoGraph(t):
+    MODEL_PATH = "model/"
+    DATA_PATH = "database/kalahai.txt"
+    DEVICE_ID = "cuda:1"
+    torch.set_printoptions(precision=8)
+    DEVICE = torch.device(DEVICE_ID if torch.cuda.is_available() else "cpu")
+    if os.path.exists(MODEL_PATH + 'D'):
+        discriminator = torch.load(MODEL_PATH + 'D')
+    discriminator.to(DEVICE)
+    u, v = getDataFromNC.getData(r'database/jiduo.nc')
+    u = u[:-67 * 6, :, :]
+    v = v[:-67 * 6, :, :]
+    u = SortTools.normalization(u)
+    v = SortTools.normalization(v)
+    time, N, M = u.shape
+    print(time, N, M)
+    graph = AutoGraph.Graph(discriminator, 50, DEVICE, u, v,
+                            SortTools.Priority_Queue(lambda x, y: x[1] > y[1],
+                                                     lambda x: '(' + str(
+                                                         x[0][0]) + ',' + str(
+                                                         x[0][1]) + ')-' '(' + str(
+                                                         x[0][2]) + ',' + str(
+                                                         x[0][3]) + ')'),
+                            SortTools.Priority_Queue(lambda x, y: x[1] < y[1],
+                                                     lambda x: '(' + str(
+                                                         x[0][0]) + ',' + str(
+                                                         x[0][1]) + ')-' '(' + str(
+                                                         x[0][2]) + ',' + str(
+                                                         x[0][3]) + ')'),
+                            1
+                            )
+    edges = graph.InitGraph(t, int(N * M * 1.5), 3, 0)
+    graph.ShowGraph(edges)
+    for i in range(2):
+        edges0 = graph.UpdateGraph(t + i * 200)
+        graph.ShowGraph(edges0)
+        print(sorted(edges0, key=lambda x: x[1]))
+        edges1 = graph.InitGraph(t + i * 200, int(N * M * 1.5), 3, 0)
+        graph.ShowGraph(edges1)
+        print(sorted(edges1, key=lambda x: x[1]))
+
 
 if __name__ == '__main__':
     # TrainGAN()
+    GetAutoGraph(1434)
     for i in range(3):
-        t = randint(0, 19348 - 51)
-        print(4321 + i)
-        GetGraph(4321 + i)
+        GetGraph(1234 + i * 200)
