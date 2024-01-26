@@ -97,6 +97,18 @@ class Graph:
             edgeList[id1][id2] = edgeList[id2][id1] = 1
         return edgeList
 
+    def GetEdgeIndex(self,edges):
+        source_nodes, target_nodes = [],[]
+        for edge in edges:
+            id1 = self.GetID(edge[0][0], edge[0][1])
+            id2 = self.GetID(edge[0][2], edge[0][3])
+            source_nodes.append(id1)
+            source_nodes.append(id2)
+            target_nodes.append(id2)
+            target_nodes.append(id1)
+
+        return [source_nodes, target_nodes]
+
     def InitGraph(self, time, numEdge, neighborhood, graphType=0):
         if time + self.scale > self.Time:
             print(time, self.scale, self.Time)

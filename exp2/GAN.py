@@ -5,6 +5,7 @@ from TorchModels import GAN
 from database import getDataFromNC
 from TorchModels import SortTools
 from random import randint
+import torch_geometric
 import os
 import matplotlib
 import matplotlib.pyplot as plt
@@ -13,6 +14,7 @@ from TorchModels import Graph
 import os
 
 from exp2.TorchModels import AutoGraph
+from exp2.database.MyDataset import MyOwnDataset
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
@@ -183,21 +185,36 @@ def GetAutoGraph(t):
                                                          x[0][1]) + ')-' '(' + str(
                                                          x[0][2]) + ',' + str(
                                                          x[0][3]) + ')'),
-                            1
+                            0.1
                             )
     edges = graph.InitGraph(t, int(N * M * 1.5), 3, 0)
     graph.ShowGraph(edges)
-    for i in range(2):
+    for i in range(10):
         edges0 = graph.UpdateGraph(t + i * 200)
         graph.ShowGraph(edges0)
         print(sorted(edges0, key=lambda x: x[1]))
-        edges1 = graph.InitGraph(t + i * 200, int(N * M * 1.5), 3, 0)
-        graph.ShowGraph(edges1)
-        print(sorted(edges1, key=lambda x: x[1]))
+        # edges1 = graph.InitGraph(t + i * 200, int(N * M * 1.5), 3, 0)
+        # graph.ShowGraph(edges1)
+        # print(sorted(edges1, key=lambda x: x[1]))
 
 
 if __name__ == '__main__':
+    print(torch.__version__)
+    print(torch.version.cuda)
+    print(torch_geometric.__version__)
+    # MODEL_PATH = "model/"
+    # DATA_PATH = "database/kalahai.txt"
+    # DEVICE_ID = "cuda:1"
+    # torch.set_printoptions(precision=8)
+    # DEVICE = torch.device(DEVICE_ID if torch.cuda.is_available() else "cpu")
+    # if os.path.exists(MODEL_PATH + 'D'):
+    #     discriminator = torch.load(MODEL_PATH + 'D')
+    # discriminator.to(DEVICE)
+    # dataSet = MyOwnDataset('database','jiduo',discriminator,DEVICE)
+    # data = dataSet[0]
+    # print(dataSet)
+    # print(data)
     # TrainGAN()
-    GetAutoGraph(1434)
-    for i in range(3):
-        GetGraph(1234 + i * 200)
+    # GetAutoGraph(1434)
+    # for i in range(3):
+    #     GetGraph(1234 + i * 200)
