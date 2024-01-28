@@ -1,16 +1,19 @@
 import numpy as np
 import torch
 from torch_geometric.data import InMemoryDataset
-from exp2.TorchModels import SortTools, AutoGraph
-from exp2.database import getDataFromNC
+import sys
+
+sys.path.append("..")
+from TorchModels import SortTools, AutoGraph
 from torch_geometric.data import Data
 
 
 class MyOwnDataset(InMemoryDataset):
-    def __init__(self, root, area, discriminator, DEVICE, transform=None, pre_transform=None):
+    def __init__(self, root, area, discriminator, DEVICE, edgeType = 0,transform=None, pre_transform=None):
         self.area = area
         self.discriminator = discriminator
         self.DEVICE = DEVICE
+        self.edgeType = edgeType
         super(MyOwnDataset, self).__init__(root, transform, pre_transform)
         self.data, self.slices = torch.load(self.processed_paths[0])
         self.data = self.data.to(DEVICE)
@@ -24,7 +27,7 @@ class MyOwnDataset(InMemoryDataset):
     @property
     def processed_file_names(self):
         if self.area == 'jiduo':
-            return ['jiduo']
+            return ['jiduo'+str(self.edgeType)]
         return ['jiduo']
 
     def download(self):
@@ -60,9 +63,14 @@ class MyOwnDataset(InMemoryDataset):
                                 )
 
         dataAll = (np.array([u, v], dtype=np.float)).transpose((1,2,3,0)).reshape((time,-1,2))
-        edges = graph.InitGraph(50, int(N * M * 1.5), 3, 0)
+        edges = graph.InitGraph(50, int(N * M * 1.25), 3, 0)
         for t in range(51,time):
-            edge_index = torch.tensor(graph.GetEdgeIndex(edges), dtype=torch.long)
+            if self.edgeType == 0:
+                edge_index = torch.tensor(graph.GetEdgeIndex(edges), dtype=torch.long)
+
+            if self.edgeType == 1:
+                edge_index = torch.tensor(graph.netEdge, dtype=torch.long)
+
             x = torch.from_numpy(dataAll[t-1,:,:]).to(torch.float32)
 
             y = torch.FloatTensor(dataAll[t,:,:]).to(torch.float32)

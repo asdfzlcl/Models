@@ -30,6 +30,29 @@ class Graph:
         self.updateRate = updateRate
         self.SafeEdges = [[] for _ in range(self.N * self.M)]
         self.d = [0 for _ in range(self.N * self.M)]
+        self.netEdge = self.GetEdgeNet()
+
+    def GetEdgeNet(self):
+        source_nodes = []
+        target_nodes = []
+        for x1 in range(self.N):
+            for y1 in range(self.M):
+                for dx in range(2):
+                    for dy in range(2):
+                        x2 = x1 + dx
+                        y2 = y1 + dy
+                        if dx == 0 and dy == 0:
+                            continue
+                        if x2 >= self.N or y2 >= self.M:
+                            continue
+                        id1 = self.GetID(x1, y1)
+                        id2 = self.GetID(x2, y2)
+                        source_nodes.append(id1)
+                        source_nodes.append(id2)
+                        target_nodes.append(id2)
+                        target_nodes.append(id1)
+        print(len(source_nodes)/2)
+        return [source_nodes, target_nodes]
 
     def GetID(self, x, y):
         return x * self.M + y
