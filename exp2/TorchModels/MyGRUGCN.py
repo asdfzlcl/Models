@@ -18,8 +18,9 @@ class MYGRUGCN(torch.nn.Module):
             d_v=self.parameter['attention_input_size'], d_o=self.parameter['attention_input_size']).to(DEVICE)
         self.GRU = GRU(input_size=self.parameter['GRU_input_size'], hidden_size=self.parameter['hidden_size'],
                        output_size=self.parameter['GRU_output_size']).to(DEVICE)
-        self.Linear1 = nn.Linear(4, 8)
-        self.Linear2 = nn.Linear(8, 2)
+        self.Linear1 = nn.Linear(4, 4)
+        self.Linear2 = nn.Linear(4, 2)
+        self.Linear3 = nn.Linear(4, 2)
         self.dropout = nn.Dropout(p=self.parameter['dropout'])
         self.relu = nn.ReLU(inplace=False)
 
@@ -53,8 +54,8 @@ class MYGRUGCN(torch.nn.Module):
     def forward(self, data, hidden, time):
         x, edge_index = data.x, data.edge_index
 
-        x = self.conv1(x, edge_index)
-        x = F.relu(x)
+        Gx = self.conv1(x, edge_index)
+        x = F.relu(Gx)
         x = self.dropout(x)
         x = self.conv2(x, edge_index)
         x = F.relu(x)
@@ -72,6 +73,6 @@ class MYGRUGCN(torch.nn.Module):
             h = torch.randn(self.parameter['node_size'], self.parameter['hidden_size']).to(self.DEVICE)
         x, h = self.GRU(x, h)
         x = self.relu(self.Linear1(x))
-        x = self.Linear2(x)
+        x = self.Linear2(x)+self.Linear3(Gx)
 
         return x, h.clone()
