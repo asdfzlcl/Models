@@ -18,23 +18,23 @@ print(DEVICE)
 
 def cal_pred_of_proto(feature, proto, exists_flag, tau=1.0):
     # calculate distance
-    feature = feature.unsqueeze(1) # [B，1，CH，D，H，W]
+    feature = feature.unsqueeze(1) # [B，1，CH，jiduoD，H，W]
     print(feature,feature.shape)
-    proto = proto.unsqueeze(0).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1) # [1, c, CH, 1, 1,1]dist = torch.norm(proto - feature, dim=2) # [B，C，D，H，W]
+    proto = proto.unsqueeze(0).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1) # [1, c, CH, 1, 1,1]dist = torch.norm(proto - feature, dim=2) # [B，C，jiduoD，H，W]
     print(proto, proto.shape)
-    dist = torch.norm(proto - feature,dim = 2) # [B,C,D,H,W]
+    dist = torch.norm(proto - feature,dim = 2) # [B,C,jiduoD,H,W]
     print(dist, dist.shape)
     # calculate weight
-    weight = torch.exp(-dist/tau) # [B，C，D，H，W]
+    weight = torch.exp(-dist/tau) # [B，C，jiduoD，H，W]
     print(weight, weight.shape)
-    weight = weight * exists_flag.unsqueeze(0).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1) # [B, C, D, H, W]
+    weight = weight * exists_flag.unsqueeze(0).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1) # [B, C, jiduoD, H, W]
     print(weight, weight.shape)
-    weight = weight / torch.sum(weight, dim=1, keepdim=True) # [B, ,D,H, W] TODO: 这步计算导致 weight nan
+    weight = weight / torch.sum(weight, dim=1, keepdim=True) # [B, ,jiduoD,H, W] TODO: 这步计算导致 weight nan
     print(weight, weight.shape)
     return weight
 
 
-# B = 1 CH = 2 D = 1 H =2 W =2 C = 2
+# B = 1 CH = 2 jiduoD = 1 H =2 W =2 C = 2
 cal_pred_of_proto(
     feature=torch.tensor([
         [

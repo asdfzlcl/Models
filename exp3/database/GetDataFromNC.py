@@ -1,8 +1,9 @@
 import numpy as np
 import netCDF4 as nc
 
-from exp2.TorchModels import SortTools
-
+def normalization(data):
+    _range = np.max(data) - np.min(data)
+    return (data - np.min(data)) / _range
 
 def getData(filename):
     nf = nc.Dataset(filename, 'r')
@@ -29,8 +30,8 @@ if __name__ == '__main__':
 
     u = u[:-67 * 6, :, :]
     v = v[:-67 * 6, :, :]
-    u = SortTools.normalization(u)
-    v = SortTools.normalization(v)
+    u = normalization(u)
+    v = normalization(v)
     time, N, M = u.shape
     data = (np.array([u, v])).transpose((1,2,3,0)).reshape((time,-1,2))
     print(data.shape)

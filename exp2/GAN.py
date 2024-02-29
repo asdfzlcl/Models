@@ -22,16 +22,16 @@ dx = [0, 0, 1, 1, 1, -1, -1, -1]
 dy = [1, -1, 1, -1, 0, 1, -1, 0]
 
 
-def TrainGAN():
-    u, v = getDataFromNC.getData(r'database/jiduo.nc')
-    u = u[:-67 * 6, :, :]
-    v = v[:-67 * 6, :, :]
+def TrainGAN(area):
+    u, v = getDataFromNC.getData(r'database/nc/'+ area +'.nc')
+    u = u[:-80 * 6, :, :]
+    v = v[:-80 * 6, :, :]
+    print(area)
     u = SortTools.normalization(u)
     v = SortTools.normalization(v)
     time, N, M = u.shape
     print(time, N, M)
     MODEL_PATH = "model/"
-    DATA_PATH = "database/kalahai.txt"
     DEVICE_ID = "cuda:1"
     torch.set_printoptions(precision=8)
     DEVICE = torch.device(DEVICE_ID if torch.cuda.is_available() else "cpu")
@@ -41,7 +41,7 @@ def TrainGAN():
     criterionD = nn.MSELoss()  # 因为最终的结果是一个数值，所以损失函数用均方误差
     optimizerG = torch.optim.Adam(generator.parameters())  # Adam优化，几乎不用调参
     criterionG = nn.MSELoss()  # 因为最终的结果是一个数值，所以损失函数用均方误差
-    for epoch in range(200):
+    for epoch in range(250):
         lossD = torch.tensor(0.0).to(DEVICE)
         lossG = torch.tensor(0.0).to(DEVICE)
 
@@ -77,14 +77,13 @@ def TrainGAN():
         optimizerD.zero_grad()
         lossD.backward()
         optimizerD.step()
-        print(epoch, lossG, lossD)
-
-    torch.save(discriminator, MODEL_PATH + 'D')
-    torch.save(generator, MODEL_PATH + 'G')
+        print(epoch, area, lossG, lossD)
+        torch.save(discriminator, MODEL_PATH + area + 'D')
+        torch.save(generator, MODEL_PATH + area + 'G')
 
 
 def TrainD():
-    u, v = getDataFromNC.getData(r'database/jiduo.nc')
+    u, v = getDataFromNC.getData(r'database/nc/jiduo.nc')
     u = u[:-67 * 6, :, :]
     v = v[:-67 * 6, :, :]
     u = SortTools.normalization(u)
@@ -92,14 +91,13 @@ def TrainD():
     time, N, M = u.shape
     print(time, N, M)
     MODEL_PATH = "model/"
-    DATA_PATH = "database/kalahai.txt"
     DEVICE_ID = "cuda:1"
     torch.set_printoptions(precision=8)
     DEVICE = torch.device(DEVICE_ID if torch.cuda.is_available() else "cpu")
     discriminator = GAN.Discriminator(50, 10).to(DEVICE)
     optimizerD = torch.optim.Adam(discriminator.parameters())  # Adam优化，几乎不用调参
     criterionD = nn.MSELoss()  # 因为最终的结果是一个数值，所以损失函数用均方误差
-    for epoch in range(200):
+    for epoch in range(500):
         lossD = torch.tensor(0.0).to(DEVICE)
 
         for i in range(50):
@@ -127,16 +125,15 @@ def TrainD():
     torch.save(discriminator, MODEL_PATH + 'D1')
 
 
-def GetGraph(t):
+def GetGraph(t,area):
     MODEL_PATH = "model/"
-    DATA_PATH = "database/kalahai.txt"
     DEVICE_ID = "cuda:1"
     torch.set_printoptions(precision=8)
     DEVICE = torch.device(DEVICE_ID if torch.cuda.is_available() else "cpu")
-    if os.path.exists(MODEL_PATH + 'D'):
-        discriminator = torch.load(MODEL_PATH + 'D')
+    if os.path.exists(MODEL_PATH + area + 'D'):
+        discriminator = torch.load(MODEL_PATH + area + 'D')
     discriminator.to(DEVICE)
-    u, v = getDataFromNC.getData(r'database/jiduo.nc')
+    u, v = getDataFromNC.getData(r'database/nc/' +area + '.nc')
     u = u[:-67 * 6, :, :]
     v = v[:-67 * 6, :, :]
     u = SortTools.normalization(u)
@@ -156,16 +153,15 @@ def GetGraph(t):
     # print(graph.GetEdgeList(edges0))
 
 
-def GetAutoGraph(t):
+def GetAutoGraph(t,area):
     MODEL_PATH = "model/"
-    DATA_PATH = "database/kalahai.txt"
     DEVICE_ID = "cuda:1"
     torch.set_printoptions(precision=8)
     DEVICE = torch.device(DEVICE_ID if torch.cuda.is_available() else "cpu")
-    if os.path.exists(MODEL_PATH + 'D'):
-        discriminator = torch.load(MODEL_PATH + 'D')
+    if os.path.exists(MODEL_PATH + area + 'D'):
+        discriminator = torch.load(MODEL_PATH + area + 'D')
     discriminator.to(DEVICE)
-    u, v = getDataFromNC.getData(r'database/jiduo.nc')
+    u, v = getDataFromNC.getData(r'database/nc/' +area + '.nc')
     u = u[:-67 * 6, :, :]
     v = v[:-67 * 6, :, :]
     u = SortTools.normalization(u)
@@ -198,17 +194,20 @@ def GetAutoGraph(t):
         # print(sorted(edges1, key=lambda x: x[1]))
 
 
+areaList = ['huashengdun', 'niuyue', 'shengbidebao', 'xichang', 'xinjiapo']
+
+a = ['xinjiapo']
+
 if __name__ == '__main__':
-    print(torch.__version__)
-    print(torch.version.cuda)
-    print(torch_geometric.__version__)
+    for area in a:
+        TrainGAN(area)
     # MODEL_PATH = "model/"
     # DATA_PATH = "database/kalahai.txt"
     # DEVICE_ID = "cuda:1"
     # torch.set_printoptions(precision=8)
     # DEVICE = torch.device(DEVICE_ID if torch.cuda.is_available() else "cpu")
-    # if os.path.exists(MODEL_PATH + 'D'):
-    #     discriminator = torch.load(MODEL_PATH + 'D')
+    # if os.path.exists(MODEL_PATH + 'jiduoD'):
+    #     discriminator = torch.load(MODEL_PATH + 'jiduoD')
     # discriminator.to(DEVICE)
     # dataSet = MyOwnDataset('database','jiduo',discriminator,DEVICE)
     # data = dataSet[0]
