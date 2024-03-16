@@ -28,6 +28,19 @@ if __name__ == '__main__':
     v = GetDataFromNC.normalization(v)
     print(u.shape)
 
+
+    index = 1219
+    length = 360
+    x = u[index : index + length : 6]
+    y = u[index + 365 * 6 : index + 365 * 6 + length : 6]
+    t = np.arange(1, int(length/6) + 1)
+    plt.plot(t, x)
+    plt.show()
+    plt.plot(t, y)
+    plt.show()
+
+
+
     # print(torch.tensor([1,2])*torch.tensor([3,4]))
 
     ## x-axis for the plot

@@ -30,20 +30,21 @@ class Graph:
         self.updateRate = updateRate
         self.SafeEdges = [[] for _ in range(self.N * self.M)]
         self.d = [0 for _ in range(self.N * self.M)]
-        self.netEdge = self.GetEdgeNet()
+        self.netEdge, self.netEdges = self.GetEdgeNet()
 
     def GetEdgeNet(self):
         source_nodes = []
         target_nodes = []
+        edges = []
         for x1 in range(self.N):
             for y1 in range(self.M):
                 for dx in range(2):
-                    for dy in range(2):
+                    for dy in range(-1,2):
                         x2 = x1 + dx
                         y2 = y1 + dy
-                        if dx == 0 and dy == 0:
+                        if dx == 0 and dy <= 0:
                             continue
-                        if x2 >= self.N or y2 >= self.M:
+                        if x2 >= self.N or y2 >= self.M or y2 < 0:
                             continue
                         id1 = self.GetID(x1, y1)
                         id2 = self.GetID(x2, y2)
@@ -51,8 +52,9 @@ class Graph:
                         source_nodes.append(id2)
                         target_nodes.append(id2)
                         target_nodes.append(id1)
-        print(len(source_nodes)/2)
-        return [source_nodes, target_nodes]
+                        edges.append([[x1, y1, x2, y2]])
+        print(len(source_nodes) / 2)
+        return [source_nodes, target_nodes], edges
 
     def GetID(self, x, y):
         return x * self.M + y
@@ -110,7 +112,7 @@ class Graph:
         for edge in edges:
             plt.plot([edge[0][0], edge[0][2]], [edge[0][1], edge[0][3]], c='k')
         plt.show()
-        print("edge nums:"+str(len(edges)))
+        print("edge nums:" + str(len(edges)))
 
     def GetEdgeList(self, edges):
         edgeList = [[0 for _ in range(self.M * self.N)] for _ in range(self.M * self.N)]
@@ -120,8 +122,8 @@ class Graph:
             edgeList[id1][id2] = edgeList[id2][id1] = 1
         return edgeList
 
-    def GetEdgeIndex(self,edges):
-        source_nodes, target_nodes = [],[]
+    def GetEdgeIndex(self, edges):
+        source_nodes, target_nodes = [], []
         for edge in edges:
             id1 = self.GetID(edge[0][0], edge[0][1])
             id2 = self.GetID(edge[0][2], edge[0][3])
@@ -138,18 +140,20 @@ class Graph:
             print("time input error")
             return []
 
+        print(numEdge)
+
         self.queueCandidate.clear()
         self.queueEdges.clear()
 
         for x1 in range(self.N):
             for y1 in range(self.M):
                 for dx in range(neighborhood):
-                    for dy in range(neighborhood):
+                    for dy in range(-neighborhood + 1, neighborhood):
                         x2 = x1 + dx
                         y2 = y1 + dy
-                        if dx == 0 and dy == 0:
+                        if dx == 0 and dy <= 0:
                             continue
-                        if x2 >= self.N or y2 >= self.M:
+                        if x2 >= self.N or y2 >= self.M or y2 < 0:
                             continue
                         value = self.checkValue(time, x1, y1, x2, y2)
                         self.queueCandidate.push([[x1, y1, x2, y2], float(value)])
@@ -194,7 +198,7 @@ class Graph:
         edgeTop = self.queueEdges.getTop()
         candidateTop = self.queueCandidate.getTop()
         nums = 0
-        while self.queueCandidate.last_index > 0 and self.queueCandidate.comparator(candidateTop,edgeTop):
+        while self.queueCandidate.last_index > 0 and self.queueCandidate.comparator(candidateTop, edgeTop):
             self.queueCandidate.pop()
             self.queueEdges.push(candidateTop)
             id1 = self.GetID(candidateTop[0][0], candidateTop[0][1])

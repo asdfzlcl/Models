@@ -160,10 +160,11 @@ def GetAutoGraph(t,area):
     DEVICE = torch.device(DEVICE_ID if torch.cuda.is_available() else "cpu")
     if os.path.exists(MODEL_PATH + area + 'D'):
         discriminator = torch.load(MODEL_PATH + area + 'D')
+        print("Load")
     discriminator.to(DEVICE)
     u, v = getDataFromNC.getData(r'database/nc/' +area + '.nc')
-    u = u[:-67 * 6, :, :]
-    v = v[:-67 * 6, :, :]
+    u = u[:-80 * 6, :, :]
+    v = v[:-80 * 6, :, :]
     u = SortTools.normalization(u)
     v = SortTools.normalization(v)
     time, N, M = u.shape
@@ -183,7 +184,8 @@ def GetAutoGraph(t,area):
                                                          x[0][3]) + ')'),
                             0.1
                             )
-    edges = graph.InitGraph(t, int(N * M * 1.5), 3, 0)
+    edges = graph.InitGraph(t, 272, 3, 0)
+    # print(graph.netEdges)
     graph.ShowGraph(edges)
     for i in range(10):
         edges0 = graph.UpdateGraph(t + i * 200)
@@ -196,11 +198,13 @@ def GetAutoGraph(t,area):
 
 areaList = ['huashengdun', 'niuyue', 'shengbidebao', 'xichang', 'xinjiapo']
 
-a = ['xinjiapo']
+a = ['jiduo','huashengdun', 'niuyue', 'shengbidebao', 'xichang', 'xinjiapo']
 
 if __name__ == '__main__':
-    for area in a:
-        TrainGAN(area)
+
+    # for area in a:
+    #     TrainGAN(area)
+
     # MODEL_PATH = "model/"
     # DATA_PATH = "database/kalahai.txt"
     # DEVICE_ID = "cuda:1"
@@ -214,6 +218,8 @@ if __name__ == '__main__':
     # print(dataSet)
     # print(data)
     # TrainGAN()
-    # GetAutoGraph(1434)
+    for area in a:
+        print(area)
+        GetAutoGraph(100,area)
     # for i in range(3):
     #     GetGraph(1234 + i * 200)
