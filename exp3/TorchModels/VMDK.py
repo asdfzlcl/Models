@@ -47,4 +47,4 @@ class VMDK(nn.Module):
             dis[i] = torch.sum(dis_feature * dis_feature)
 
         index = torch.argmin(dis)
-        return self.sigmoid(self.out(dis_feature[index] * self.params['W']))
+        return self.sigmoid(self.out(dis_feature[index]))
